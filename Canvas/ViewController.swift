@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UIGestureRecognizerDelegate {
 
     @IBOutlet weak var trayView: UIView!
     
@@ -57,14 +57,25 @@ class ViewController: UIViewController {
             // Create a new image view that has the same image as the one currently panning
             newlyCreatedFace = UIImageView(image: imageView.image)
             
+            // The didPinch
+            let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(didPinch(sender:)))
+            
+            // Attach it to a view of your choice. If it's a UIImageView, remember to enable user interaction
+            newlyCreatedFace.isUserInteractionEnabled = true
+            newlyCreatedFace.addGestureRecognizer(pinchGestureRecognizer)
+            
             // Add the new face to the tray's parent view.
             trayView.addSubview(newlyCreatedFace)
             
+            UIView.animate(withDuration: 0.1, animations: {
+                self.newlyCreatedFace.transform = CGAffineTransform(scaleX: 2, y: 2)
+            })
+
             // Initialize the position of the new face.
             newlyCreatedFace.center = imageView.center
             
             initialNewlyCreatedFacePoint = newlyCreatedFace.center
-            
+  
             // Since the original face is in the tray, but the new face is in the
             // main view, you have to offset the coordinates
             newlyCreatedFace.center.y += trayView.frame.origin.y
@@ -73,6 +84,23 @@ class ViewController: UIViewController {
         if state == .changed {
             newlyCreatedFace.center = CGPoint(x: initialNewlyCreatedFacePoint.x + translation.x, y: initialNewlyCreatedFacePoint.y + translation.y)
         }
+        
+        if state == .ended {
+            UIView.animate(withDuration: 0.1, animations: {
+                self.newlyCreatedFace.transform = self.newlyCreatedFace.transform.scaledBy(x: 0.8, y: 0.8)
+            })
+        }
     }
+    
+    func didPinch(sender: UIPinchGestureRecognizer) {
+        print("pinch")
+        let scale = sender.scale
+        
+        let imageView = sender.view as! UIImageView
+        
+        imageView.transform = imageView.transform.scaledBy(x: scale, y: scale)
+        sender.scale = 1
+    }
+
 }
 
