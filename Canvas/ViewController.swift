@@ -13,6 +13,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var trayView: UIView!
     
     var initialPoint = CGPoint(x:0, y: 0)
+    var initialNewlyCreatedFacePoint = CGPoint(x:0, y: 0)
     var newlyCreatedFace: UIImageView!
     
     override func viewDidLoad() {
@@ -47,24 +48,30 @@ class ViewController: UIViewController {
     
     @IBAction func onIconPanGesture(_ sender: UIPanGestureRecognizer) {
         let state = sender.state
+        let translation = sender.translation(in: self.view)
         
         if state == .began {
-        print("pan gesture")
-        // Gesture recognizers know the view they are attached to
-        let imageView = panGestureRecognizer.view as! UIImageView
+            // Gesture recognizers know the view they are attached to
+            let imageView = sender.view as! UIImageView
+            
+            // Create a new image view that has the same image as the one currently panning
+            newlyCreatedFace = UIImageView(image: imageView.image)
+            
+            // Add the new face to the tray's parent view.
+            trayView.addSubview(newlyCreatedFace)
+            
+            // Initialize the position of the new face.
+            newlyCreatedFace.center = imageView.center
+            
+            initialNewlyCreatedFacePoint = newlyCreatedFace.center
+            
+            // Since the original face is in the tray, but the new face is in the
+            // main view, you have to offset the coordinates
+            newlyCreatedFace.center.y += trayView.frame.origin.y
+        }
         
-        // Create a new image view that has the same image as the one currently panning
-        newlyCreatedFace = UIImageView(image: imageView.image)
-        
-        // Add the new face to the tray's parent view.
-        trayView.addSubview(newlyCreatedFace)
-        
-        // Initialize the position of the new face.
-        newlyCreatedFace.center = imageView.center
-        
-        // Since the original face is in the tray, but the new face is in the
-        // main view, you have to offset the coordinates
-        newlyCreatedFace.center.y += trayView.frame.origin.y
+        if state == .changed {
+            newlyCreatedFace.center = CGPoint(x: initialNewlyCreatedFacePoint.x + translation.x, y: initialNewlyCreatedFacePoint.y + translation.y)
         }
     }
 }
